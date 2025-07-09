@@ -42,7 +42,7 @@ with st.sidebar:
     
     api_version = st.selectbox(
         "API Version",
-        ["2023-05-15", "2023-07-01-preview", "2023-08-01-preview"],
+        ["2025-01-01-preview"],
         index=0
     )
 
