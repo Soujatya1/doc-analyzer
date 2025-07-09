@@ -1,151 +1,205 @@
 import streamlit as st
-import pandas as pd
-import math
-from pathlib import Path
+import os
+from langchain.document_loaders import PyPDFLoader
+from langchain.prompts import PromptTemplate
+from langchain.llms import AzureOpenAI
+from langchain.chains import LLMChain
+import tempfile
 
-# Set the title and favicon that appear in the Browser's tab bar.
+# Configure Streamlit page
 st.set_page_config(
-    page_title='GDP dashboard',
-    page_icon=':earth_americas:', # This is an emoji shortcode. Could be a URL too.
+    page_title="IRDAI Document Analyzer",
+    page_icon="📄",
+    layout="wide"
 )
 
-# -----------------------------------------------------------------------------
-# Declare some useful functions.
+st.title("📄 IRDAI Circular Document Analyzer")
+st.markdown("Upload PDF documents to analyze and structure IRDAI circulars with headers and sub-headers")
 
-@st.cache_data
-def get_gdp_data():
-    """Grab GDP data from a CSV file.
-
-    This uses caching to avoid having to read the file every time. If we were
-    reading from an HTTP endpoint instead of a file, it's a good idea to set
-    a maximum age to the cache with the TTL argument: @st.cache_data(ttl='1d')
-    """
-
-    # Instead of a CSV on disk, you could read from an HTTP endpoint here too.
-    DATA_FILENAME = Path(__file__).parent/'data/gdp_data.csv'
-    raw_gdp_df = pd.read_csv(DATA_FILENAME)
-
-    MIN_YEAR = 1960
-    MAX_YEAR = 2022
-
-    # The data above has columns like:
-    # - Country Name
-    # - Country Code
-    # - [Stuff I don't care about]
-    # - GDP for 1960
-    # - GDP for 1961
-    # - GDP for 1962
-    # - ...
-    # - GDP for 2022
-    #
-    # ...but I want this instead:
-    # - Country Name
-    # - Country Code
-    # - Year
-    # - GDP
-    #
-    # So let's pivot all those year-columns into two: Year and GDP
-    gdp_df = raw_gdp_df.melt(
-        ['Country Code'],
-        [str(x) for x in range(MIN_YEAR, MAX_YEAR + 1)],
-        'Year',
-        'GDP',
+# Sidebar for Azure OpenAI configuration
+with st.sidebar:
+    st.header("🔧 Configuration")
+    
+    # Azure OpenAI Configuration
+    azure_endpoint = st.text_input(
+        "Azure OpenAI Endpoint",
+        placeholder="https://your-resource.openai.azure.com/",
+        help="Your Azure OpenAI service endpoint"
+    )
+    
+    api_key = st.text_input(
+        "Azure OpenAI API Key",
+        type="password",
+        placeholder="Enter your API key",
+        help="Your Azure OpenAI API key"
+    )
+    
+    deployment_name = st.text_input(
+        "Deployment Name",
+        placeholder="gpt-35-turbo",
+        help="Name of your deployed model"
+    )
+    
+    api_version = st.selectbox(
+        "API Version",
+        ["2023-05-15", "2023-07-01-preview", "2023-08-01-preview"],
+        index=0
     )
 
-    # Convert years from string to integers
-    gdp_df['Year'] = pd.to_numeric(gdp_df['Year'])
+# Main content area
+col1, col2 = st.columns([1, 1])
 
-    return gdp_df
+with col1:
+    st.header("📤 Upload Documents")
+    uploaded_files = st.file_uploader(
+        "Choose PDF files",
+        type="pdf",
+        accept_multiple_files=True,
+        help="Upload one or more PDF files containing IRDAI circulars"
+    )
 
-gdp_df = get_gdp_data()
+# Define the prompt template
+prompt_template = PromptTemplate(
+    input_variables=["document_content"],
+    template="""You are a document analyzer and writer. There are some input IRDAI circulars. Read through the documents and create an output where there will be headers and sub-headers, under which the pointers to be mentioned.
 
-# -----------------------------------------------------------------------------
-# Draw the actual page
+Document Content:
+{document_content}
 
-# Set the title that appears at the top of the page.
-'''
-# :earth_americas: GDP dashboard
+Please analyze the document and structure it with:
+1. Clear headers and sub-headers
+2. Key points organized under relevant sections
+3. Important regulatory information highlighted
+4. Actionable items clearly identified
 
-Browse GDP data from the [World Bank Open Data](https://data.worldbank.org/) website. As you'll
-notice, the data only goes to 2022 right now, and datapoints for certain years are often missing.
-But it's otherwise a great (and did I mention _free_?) source of data.
-'''
+Output Format:
+- Use markdown formatting for headers (# ## ###)
+- Use bullet points for key information
+- Maintain logical flow and structure
+- Include any deadlines or compliance requirements
 
-# Add some spacing
-''
-''
-
-min_value = gdp_df['Year'].min()
-max_value = gdp_df['Year'].max()
-
-from_year, to_year = st.slider(
-    'Which years are you interested in?',
-    min_value=min_value,
-    max_value=max_value,
-    value=[min_value, max_value])
-
-countries = gdp_df['Country Code'].unique()
-
-if not len(countries):
-    st.warning("Select at least one country")
-
-selected_countries = st.multiselect(
-    'Which countries would you like to view?',
-    countries,
-    ['DEU', 'FRA', 'GBR', 'BRA', 'MEX', 'JPN'])
-
-''
-''
-''
-
-# Filter the data
-filtered_gdp_df = gdp_df[
-    (gdp_df['Country Code'].isin(selected_countries))
-    & (gdp_df['Year'] <= to_year)
-    & (from_year <= gdp_df['Year'])
-]
-
-st.header('GDP over time', divider='gray')
-
-''
-
-st.line_chart(
-    filtered_gdp_df,
-    x='Year',
-    y='GDP',
-    color='Country Code',
+Analysis:"""
 )
 
-''
-''
-
-
-first_year = gdp_df[gdp_df['Year'] == from_year]
-last_year = gdp_df[gdp_df['Year'] == to_year]
-
-st.header(f'GDP in {to_year}', divider='gray')
-
-''
-
-cols = st.columns(4)
-
-for i, country in enumerate(selected_countries):
-    col = cols[i % len(cols)]
-
-    with col:
-        first_gdp = first_year[first_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
-        last_gdp = last_year[last_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
-
-        if math.isnan(first_gdp):
-            growth = 'n/a'
-            delta_color = 'off'
-        else:
-            growth = f'{last_gdp / first_gdp:,.2f}x'
-            delta_color = 'normal'
-
-        st.metric(
-            label=f'{country} GDP',
-            value=f'{last_gdp:,.0f}B',
-            delta=growth,
-            delta_color=delta_color
+def initialize_azure_openai(endpoint, api_key, deployment_name, api_version):
+    """Initialize Azure OpenAI LLM"""
+    try:
+        llm = AzureOpenAI(
+            azure_endpoint=endpoint,
+            api_key=api_key,
+            deployment_name=deployment_name,
+            api_version=api_version,
+            temperature=0.3,
+            max_tokens=2000
         )
+        return llm
+    except Exception as e:
+        st.error(f"Error initializing Azure OpenAI: {str(e)}")
+        return None
+
+def load_pdf_documents(uploaded_files):
+    """Load PDF documents using PyPDFLoader"""
+    all_documents = []
+    
+    for uploaded_file in uploaded_files:
+        # Create a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
+            tmp_file.write(uploaded_file.getvalue())
+            tmp_file_path = tmp_file.name
+        
+        try:
+            # Load PDF using PyPDFLoader
+            loader = PyPDFLoader(tmp_file_path)
+            documents = loader.load()
+            all_documents.extend(documents)
+            
+            st.success(f"✅ Loaded {len(documents)} pages from {uploaded_file.name}")
+            
+        except Exception as e:
+            st.error(f"❌ Error loading {uploaded_file.name}: {str(e)}")
+        
+        finally:
+            # Clean up temporary file
+            if os.path.exists(tmp_file_path):
+                os.unlink(tmp_file_path)
+    
+    return all_documents
+
+def analyze_documents(documents, llm, prompt_template):
+    """Analyze documents using Azure OpenAI"""
+    try:
+        # Combine all document content
+        combined_content = "\n\n".join([doc.page_content for doc in documents])
+        
+        # Create LLM chain
+        chain = LLMChain(llm=llm, prompt=prompt_template)
+        
+        # Generate analysis
+        with st.spinner("🔄 Analyzing documents with Azure OpenAI..."):
+            result = chain.run(document_content=combined_content)
+        
+        return result
+    
+    except Exception as e:
+        st.error(f"Error during analysis: {str(e)}")
+        return None
+
+# Process documents when uploaded and configuration is complete
+if uploaded_files and azure_endpoint and api_key and deployment_name:
+    
+    with col2:
+        st.header("📋 Document Processing")
+        
+        if st.button("🚀 Analyze Documents", type="primary"):
+            # Initialize Azure OpenAI
+            llm = initialize_azure_openai(azure_endpoint, api_key, deployment_name, api_version)
+            
+            if llm:
+                # Load PDF documents
+                documents = load_pdf_documents(uploaded_files)
+                
+                if documents:
+                    st.info(f"📊 Total pages loaded: {len(documents)}")
+                    
+                    # Analyze documents
+                    analysis_result = analyze_documents(documents, llm, prompt_template)
+                    
+                    if analysis_result:
+                        st.success("✅ Analysis completed successfully!")
+                        
+                        # Display results
+                        st.header("📄 Analysis Results")
+                        st.markdown("---")
+                        st.markdown(analysis_result)
+                        
+                        # Download option
+                        st.download_button(
+                            label="📥 Download Analysis",
+                            data=analysis_result,
+                            file_name="irdai_circular_analysis.md",
+                            mime="text/markdown"
+                        )
+
+elif uploaded_files:
+    with col2:
+        st.warning("⚠️ Please complete the Azure OpenAI configuration in the sidebar before analyzing documents.")
+
+else:
+    with col2:
+        st.info("👈 Please upload PDF files to begin analysis.")
+
+# Footer
+st.markdown("---")
+st.markdown("""
+### 📝 Instructions:
+1. **Configure Azure OpenAI**: Enter your Azure OpenAI endpoint, API key, and deployment details in the sidebar
+2. **Upload Documents**: Select one or more PDF files containing IRDAI circulars
+3. **Analyze**: Click the 'Analyze Documents' button to process the documents
+4. **Review Results**: The structured analysis will appear with headers, sub-headers, and key points
+5. **Download**: Save the analysis as a markdown file for future reference
+
+### 🔧 Requirements:
+- Valid Azure OpenAI service subscription
+- PDF files containing IRDAI circulars
+- Stable internet connection for API calls
+""")
