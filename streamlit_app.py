@@ -2,7 +2,7 @@ import streamlit as st
 import os
 from langchain.document_loaders import PyPDFLoader
 from langchain.prompts import PromptTemplate
-from langchain.llms import AzureOpenAI
+from langchain_openai import AzureChatOpenAI
 from langchain.chains import LLMChain
 import tempfile
 
@@ -84,7 +84,7 @@ Analysis:"""
 def initialize_azure_openai(endpoint, api_key, deployment_name, api_version):
     """Initialize Azure OpenAI LLM"""
     try:
-        llm = AzureOpenAI(
+        llm = AzureChatOpenAI(
             azure_endpoint=endpoint,
             api_key=api_key,
             deployment_name=deployment_name,
