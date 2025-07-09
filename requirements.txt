@@ -1,2 +1,5 @@
 streamlit
-pandas
+langchain
+openai
+azure-openai
+pypdf
