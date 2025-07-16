@@ -146,9 +146,14 @@ def create_pdf_styles():
     """Create custom styles for PDF generation"""
     styles = getSampleStyleSheet()
     
+    # Helper function to safely add styles
+    def safe_add_style(name, style):
+        if name not in styles:
+            styles.add(style)
+    
     # Custom styles for different heading levels
-    styles.add(ParagraphStyle(
-        name='CustomTitle',
+    safe_add_style('IRDAITitle', ParagraphStyle(
+        name='IRDAITitle',
         parent=styles['Title'],
         fontSize=18,
         textColor=darkblue,
@@ -156,8 +161,8 @@ def create_pdf_styles():
         alignment=TA_CENTER
     ))
     
-    styles.add(ParagraphStyle(
-        name='MainHeader',
+    safe_add_style('IRDAIMainHeader', ParagraphStyle(
+        name='IRDAIMainHeader',
         parent=styles['Heading1'],
         fontSize=14,
         textColor=darkblue,
@@ -166,8 +171,8 @@ def create_pdf_styles():
         leftIndent=0
     ))
     
-    styles.add(ParagraphStyle(
-        name='SubHeader',
+    safe_add_style('IRDAISubHeader', ParagraphStyle(
+        name='IRDAISubHeader',
         parent=styles['Heading2'],
         fontSize=12,
         textColor=blue,
@@ -176,8 +181,8 @@ def create_pdf_styles():
         leftIndent=20
     ))
     
-    styles.add(ParagraphStyle(
-        name='SubSubHeader',
+    safe_add_style('IRDAISubSubHeader', ParagraphStyle(
+        name='IRDAISubSubHeader',
         parent=styles['Heading3'],
         fontSize=11,
         textColor=black,
@@ -186,8 +191,8 @@ def create_pdf_styles():
         leftIndent=40
     ))
     
-    styles.add(ParagraphStyle(
-        name='BodyText',
+    safe_add_style('IRDAIBodyText', ParagraphStyle(
+        name='IRDAIBodyText',
         parent=styles['Normal'],
         fontSize=10,
         spaceAfter=6,
@@ -196,8 +201,8 @@ def create_pdf_styles():
         alignment=TA_JUSTIFY
     ))
     
-    styles.add(ParagraphStyle(
-        name='BulletText',
+    safe_add_style('IRDAIBulletText', ParagraphStyle(
+        name='IRDAIBulletText',
         parent=styles['Normal'],
         fontSize=10,
         spaceAfter=4,
@@ -231,13 +236,13 @@ def parse_structured_text_to_pdf(text, filename="irdai_summary.pdf"):
     story = []
     
     # Add title
-    title = Paragraph("IRDAI Document Analysis Summary", styles['CustomTitle'])
+    title = Paragraph("IRDAI Document Analysis Summary", styles['IRDAITitle'])
     story.append(title)
     story.append(Spacer(1, 20))
     
     # Add generation date
     date_text = f"Generated on: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}"
-    date_para = Paragraph(date_text, styles['BodyText'])
+    date_para = Paragraph(date_text, styles['IRDAIBodyText'])
     story.append(date_para)
     story.append(Spacer(1, 20))
     
@@ -252,36 +257,36 @@ def parse_structured_text_to_pdf(text, filename="irdai_summary.pdf"):
         # Main headers (##)
         if line.startswith('## '):
             header_text = line[3:].strip()
-            para = Paragraph(header_text, styles['MainHeader'])
+            para = Paragraph(header_text, styles['IRDAIMainHeader'])
             story.append(para)
             
         # Sub headers (###)
         elif line.startswith('### '):
             header_text = line[4:].strip()
-            para = Paragraph(header_text, styles['SubHeader'])
+            para = Paragraph(header_text, styles['IRDAISubHeader'])
             story.append(para)
             
         # Sub-sub headers (####)
         elif line.startswith('#### '):
             header_text = line[5:].strip()
-            para = Paragraph(header_text, styles['SubSubHeader'])
+            para = Paragraph(header_text, styles['IRDAISubSubHeader'])
             story.append(para)
             
         # Bullet points
         elif line.startswith('• ') or line.startswith('- '):
             bullet_text = line[2:].strip()
-            para = Paragraph(f"• {bullet_text}", styles['BulletText'])
+            para = Paragraph(f"• {bullet_text}", styles['IRDAIBulletText'])
             story.append(para)
             
         # Numbered lists
         elif re.match(r'^\d+\.\s', line):
-            para = Paragraph(line, styles['BulletText'])
+            para = Paragraph(line, styles['IRDAIBulletText'])
             story.append(para)
             
         # Regular text
         else:
             if line:
-                para = Paragraph(line, styles['BodyText'])
+                para = Paragraph(line, styles['IRDAIBodyText'])
                 story.append(para)
     
     # Build PDF
