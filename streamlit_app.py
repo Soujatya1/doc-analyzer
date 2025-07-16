@@ -74,19 +74,29 @@ with col1:
     )
 
 def extract_english_text(text):
-    # Split by paragraphs and lines, not just sentences
-    lines = text.split('\n')
-    english_content = []
+    """Extract only English text from the document"""
+    try:
+        sentences = re.split(r'[.!?]+', text)
+        english_sentences = []
+        
+        for sentence in sentences:
+            sentence = sentence.strip()
+            if len(sentence) > 10:
+                try:
+                    lang = langdetect.detect(sentence)
+                    if lang == 'en':
+                        english_sentences.append(sentence)
+                except LangDetectException:
+                    if re.search(r'\b(the|and|or|of|to|in|for|with|by|from|at|is|are|was|were)\b', sentence.lower()):
+                        english_sentences.append(sentence)
+        
+        extracted_text = '. '.join(english_sentences) + '.'
+        logger.info(f"Extracted English text ({extracted_text} ):")
     
-    for line in lines:
-        line = line.strip()
-        if len(line) > 2:
-            if (re.search(r'[a-zA-Z]', line) and 
-                not re.search(r'^[\d\s\-\.\(\)]+$', line)):
-                english_content.append(line)
-    
-    english_text = '\n'.join(english_content)
-    logger.info(f"Content: {english_text}")
+    except Exception as e:
+        st.warning(f"Language detection error: {e}. Using original text.")
+        return text
+        
 def get_summary_prompt(text):
     """Generate summary prompt for the document"""
     return f"""
