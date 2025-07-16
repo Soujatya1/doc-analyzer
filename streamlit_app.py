@@ -112,7 +112,7 @@ Your task is to generate a **clean, concise, section-wise summary** of the input
 3. **Each section should be summarized in 5 lines**, proportional to its original length:
    - Keep it brief, but **do not omit the core message**.
    - Avoid generalizations or overly descriptive rewriting.
-4. If a section contains **definitions**, summarize them line by line (e.g., Definition A: …).
+4. If a section contains **definitions**, summarize them line by line (e.g., Definitions applicable to Part A of these Regulations: …).
 5. If the section contains **tabular data**, preserve **column-wise details**:
    - Include every row and column in a concise bullet or structured format.
    - Do not merge or generalize rows — maintain data fidelity.
