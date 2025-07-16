@@ -88,6 +88,7 @@ def extract_english_text(text):
                         english_sentences.append(sentence)
         
         return '. '.join(english_sentences) + '.'
+        st.logger.info(f"Extracted English text ({len(extracted_text)} characters):")
     
     except Exception as e:
         st.warning(f"Language detection error: {e}. Using original text.")
