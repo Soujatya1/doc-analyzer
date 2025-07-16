@@ -105,20 +105,10 @@ Your task is to generate a **clean, section-wise and chapter-wise summary** of t
 
 ---
 
-**FORMATTING REQUIREMENTS:**
-- Start with a clear document title: "# IRDAI Circular Summary"
-- Use numbered sections (1., 2., 3., etc.) for main topics
-- Use lettered subsections (a., b., c., etc.) for sub-topics
-- Use bullet points with "- " for detailed items
-- Use **bold text** for important terms and section headers
-- Maintain paragraph flow rather than excessive bullet points
-- Keep definitions and explanations in paragraph form where possible
-
 ### Mandatory Summarization Rules:
 
 1. Understand each and every section, chapter and pointers in the original file
 2. Summarize pointer-by-pointer keeping the context as-is and respond
-3. Also read through the tables too and summarize the same
 
 ---
 
@@ -422,3 +412,32 @@ elif uploaded_files:
 else:
     with col2:
         st.info("👈 Please upload PDF files to begin analysis.")
+
+# Footer
+st.markdown("---")
+st.markdown("""
+### 📝 Instructions:
+1. **Configure Azure OpenAI**: Enter your Azure OpenAI endpoint, API key, and deployment details in the sidebar
+2. **Upload Documents**: Select one or more PDF files containing IRDAI circulars
+3. **Analyze**: Click the 'Generate Document Summary' button to process the documents
+4. **Review Results**: The analysis will appear with proper formatting
+5. **Download**: Save the analysis results as text or formatted PDF
+
+### 🔧 Features:
+- **English Text Processing**: Automatically extracts and processes only English content
+- **Structured PDF Output**: Creates professionally formatted PDF with proper headers and subheaders
+- **Hierarchical Formatting**: Maintains document structure with appropriate indentation and styling
+- **Multiple Download Options**: Save as both text and PDF formats
+
+### 📋 Requirements:
+- Valid Azure OpenAI service subscription
+- PDF files containing IRDAI circulars
+- Stable internet connection for API calls
+
+### 📄 PDF Features:
+- Professional document formatting
+- Hierarchical header structure
+- Proper indentation and spacing
+- Color-coded headers for easy navigation
+- Generation timestamp
+""")
