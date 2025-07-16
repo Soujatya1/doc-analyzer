@@ -46,14 +46,7 @@ with st.sidebar:
         index=0
     )
     
-    # Analysis Type Selection
-    st.header("📊 Analysis Options")
-    analysis_type = st.selectbox(
-        "Choose Analysis Type",
-        ["Structured Analysis", "Document Summary", "Both"],
-        index=0,
-        help="Select the type of analysis to perform"
-    )
+
 
 # Main content area
 col1, col2 = st.columns([1, 1])
@@ -67,27 +60,10 @@ with col1:
         help="Upload one or more PDF files containing IRDAI circulars"
     )
 
-# Define the structured analysis prompt template
-structured_prompt_template = PromptTemplate(
-    input_variables=["document_content"],
-    template="""You are a document analyzer and writer. There are some input IRDAI circulars. Read through the documents and create an output where there will be headers and sub-headers, under which the pointers to be mentioned.
-
-Document Content:
-{document_content}
-
-Please analyze the document and structure it with:
-1. Clear headers and sub-headers
-2. Key points organized under relevant sections
-3. Important regulatory information highlighted
-4. Actionable items clearly identified
-
-Output Format:
-- Use markdown formatting for headers (# ## ###)
-- Use bullet points for key information
-- Maintain logical flow and structure
-- Include any deadlines or compliance requirements
-
-Analysis:"""
+# Define the summary prompt template
+summary_prompt_template = PromptTemplate(
+    input_variables=["document_content", "page_count"],
+    template="{document_content}"
 )
 
 def get_summary_prompt(text, page_count):
@@ -181,25 +157,6 @@ def load_pdf_documents(uploaded_files):
     
     return all_documents
 
-def analyze_documents_structured(documents, llm, prompt_template):
-    """Analyze documents using structured analysis"""
-    try:
-        # Combine all document content
-        combined_content = "\n\n".join([doc.page_content for doc in documents])
-        
-        # Create LLM chain
-        chain = LLMChain(llm=llm, prompt=prompt_template)
-        
-        # Generate analysis
-        with st.spinner("🔄 Performing structured analysis..."):
-            result = chain.run(document_content=combined_content)
-        
-        return result
-    
-    except Exception as e:
-        st.error(f"Error during structured analysis: {str(e)}")
-        return None
-
 def analyze_documents_summary(documents, llm):
     """Analyze documents using summary generation"""
     try:
@@ -235,7 +192,7 @@ if uploaded_files and azure_endpoint and api_key and deployment_name:
     with col2:
         st.header("📋 Document Processing")
         
-        if st.button("🚀 Analyze Documents", type="primary"):
+        if st.button("🚀 Generate Document Summary", type="primary"):
             # Initialize Azure OpenAI
             llm = initialize_azure_openai(azure_endpoint, api_key, deployment_name, api_version)
             
@@ -246,84 +203,24 @@ if uploaded_files and azure_endpoint and api_key and deployment_name:
                 if documents:
                     st.info(f"📊 Total pages loaded: {len(documents)}")
                     
-                    # Perform analysis based on selected type
-                    if analysis_type == "Structured Analysis":
-                        analysis_result = analyze_documents_structured(documents, llm, structured_prompt_template)
-                        
-                        if analysis_result:
-                            st.success("✅ Structured analysis completed successfully!")
-                            
-                            # Display results
-                            st.header("📄 Structured Analysis Results")
-                            st.markdown("---")
-                            st.markdown(analysis_result)
-                            
-                            # Download option
-                            st.download_button(
-                                label="📥 Download Structured Analysis",
-                                data=analysis_result,
-                                file_name="irdai_structured_analysis.md",
-                                mime="text/markdown"
-                            )
+                    # Generate document summary
+                    summary_result = analyze_documents_summary(documents, llm)
                     
-                    elif analysis_type == "Document Summary":
-                        summary_result = analyze_documents_summary(documents, llm)
+                    if summary_result:
+                        st.success("✅ Document summary generated successfully!")
                         
-                        if summary_result:
-                            st.success("✅ Document summary generated successfully!")
-                            
-                            # Display results
-                            st.header("📄 Document Summary")
-                            st.markdown("---")
-                            st.text(summary_result)
-                            
-                            # Download option
-                            st.download_button(
-                                label="📥 Download Summary",
-                                data=summary_result,
-                                file_name="irdai_document_summary.txt",
-                                mime="text/plain"
-                            )
-                    
-                    else:  # Both analyses
-                        # Structured Analysis
-                        analysis_result = analyze_documents_structured(documents, llm, structured_prompt_template)
+                        # Display results
+                        st.header("📄 Document Summary")
+                        st.markdown("---")
+                        st.text(summary_result)
                         
-                        # Document Summary
-                        summary_result = analyze_documents_summary(documents, llm)
-                        
-                        if analysis_result and summary_result:
-                            st.success("✅ Both analyses completed successfully!")
-                            
-                            # Create tabs for results
-                            tab1, tab2 = st.tabs(["📋 Structured Analysis", "📄 Document Summary"])
-                            
-                            with tab1:
-                                st.markdown(analysis_result)
-                                st.download_button(
-                                    label="📥 Download Structured Analysis",
-                                    data=analysis_result,
-                                    file_name="irdai_structured_analysis.md",
-                                    mime="text/markdown"
-                                )
-                            
-                            with tab2:
-                                st.text(summary_result)
-                                st.download_button(
-                                    label="📥 Download Summary",
-                                    data=summary_result,
-                                    file_name="irdai_document_summary.txt",
-                                    mime="text/plain"
-                                )
-                            
-                            # Combined download
-                            combined_result = f"# IRDAI Document Analysis\n\n## Structured Analysis\n\n{analysis_result}\n\n## Document Summary\n\n{summary_result}"
-                            st.download_button(
-                                label="📥 Download Combined Analysis",
-                                data=combined_result,
-                                file_name="irdai_complete_analysis.md",
-                                mime="text/markdown"
-                            )
+                        # Download option
+                        st.download_button(
+                            label="📥 Download Summary",
+                            data=summary_result,
+                            file_name="irdai_document_summary.txt",
+                            mime="text/plain"
+                        )
 
 elif uploaded_files:
     with col2:
