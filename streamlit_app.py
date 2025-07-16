@@ -97,36 +97,7 @@ Your task is to generate a **clean, section-wise and chapter-wise summary** of t
 ---
 
 ### Mandatory Summarization Rules:
-
-1. **Follow the original structure strictly** — maintain the same order of:
-   - Section headings
-   - Subheadings
-   - Bullet points
-   - Tables
-   - Date-wise event history
-   - UIDAI / IRDAI / eGazette circulars
-
-2. **Do NOT rename or reformat section titles** — retain the exact headings from the original file.
-
-3. **Each section should be summarized in 1–5 lines**, proportional to its original length:
-   - Keep it brief, but **do not omit the core message**.
-   - Avoid generalizations or overly descriptive rewriting.
-
-4. If a section contains **definitions**, summarize them line by line (e.g., Definitions: …).
-
-5. If the section contains **tabular data**, preserve **column-wise details**:
-   - Include every row and column in a concise bullet or structured format.
-   - Do not merge or generalize rows — maintain data fidelity.
-
-6. If a section contains **violations, fines, or penalties**, mention each item clearly:
-   - List out exact violation titles and actions taken or proposed.
-
-7. For **date-wise circulars or history**, ensure that:
-   - **No dates are skipped or merged.**
-   - Maintain **chronological order**.
-   - Mention full references such as "IRDAI Circular dated 12-May-2022".
-   
-8. Target approximately 40-60% of the original source document pointers while creating response, also consider all the pointers under each section and each chapter
+Target approximately 40-60% of the original source document pointers while creating response, also consider all the pointers under each section and each chapter
 
 ---
 
