@@ -235,7 +235,6 @@ def parse_structured_text_to_pdf(text, filename="irdai_summary.pdf"):
     story.append(Spacer(1, 20))
     
     # Add generation date
-    date_text = f"Generated on: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}"
     date_para = Paragraph(date_text, styles['IRDAIBodyText'])
     story.append(date_para)
     story.append(Spacer(1, 20))
