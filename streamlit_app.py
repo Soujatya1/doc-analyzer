@@ -87,7 +87,7 @@ def extract_english_text(text):
     
     return '\n'.join(english_content)
 
-def get_summary_prompt(text, page_count):
+def get_summary_prompt(text):
     """Generate summary prompt for the document"""
     return f"""
 You are a domain expert in insurance compliance and regulation.
@@ -126,7 +126,7 @@ Your task is to generate a **clean, section-wise and chapter-wise summary** of t
    - Maintain **chronological order**.
    - Mention full references such as "IRDAI Circular dated 12-May-2022".
    
-8. Target approximately 40-60% of the original document length, also consider all the pointers under each section and each chapter
+8. Target approximately 40-60% of the original source document pointers while creating response, also consider all the pointers under each section and each chapter
 
 ---
 
@@ -138,9 +138,6 @@ Your task is to generate a **clean, section-wise and chapter-wise summary** of t
 
 ---
 
-### Guideline:
-
-Ensure that the **total summary length does not exceed ~50% of the English content pages** from the input document (total pages: {page_count}).
 
 Now, generate a section-wise structured summary of the document below:
 --------------------
@@ -354,7 +351,7 @@ def analyze_documents_summary(documents, llm):
         page_count = len(documents)
         
         # Generate summary prompt
-        summary_prompt = get_summary_prompt(english_content, page_count)
+        summary_prompt = get_summary_prompt(english_content)
         
         # Create a simple prompt template for summary
         prompt_template = PromptTemplate(
