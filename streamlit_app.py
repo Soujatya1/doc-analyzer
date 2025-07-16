@@ -92,7 +92,7 @@ def get_summary_prompt(text, page_count):
     return f"""
 You are a domain expert in insurance compliance and regulation.
 
-Your task is to generate a **clean, concise, section-wise summary** of the input IRDAI/regulatory document while preserving the **original structure and flow** of the document.
+Your task is to generate a **clean, section-wise and chapter-wise summary** of the input IRDAI/regulatory document while preserving the **original structure and flow** of the document.
 
 ---
 
@@ -112,7 +112,7 @@ Your task is to generate a **clean, concise, section-wise summary** of the input
    - Keep it brief, but **do not omit the core message**.
    - Avoid generalizations or overly descriptive rewriting.
 
-4. If a section contains **definitions**, summarize them line by line (e.g., Definitions applicable: …).
+4. If a section contains **definitions**, summarize them line by line (e.g., Definitions: …).
 
 5. If the section contains **tabular data**, preserve **column-wise details**:
    - Include every row and column in a concise bullet or structured format.
@@ -125,7 +125,8 @@ Your task is to generate a **clean, concise, section-wise summary** of the input
    - **No dates are skipped or merged.**
    - Maintain **chronological order**.
    - Mention full references such as "IRDAI Circular dated 12-May-2022".
-8. Target approximately 40-60% of the original document length
+   
+8. Target approximately 40-60% of the original document length, also consider all the pointers under each section and each chapter
 
 ---
 
