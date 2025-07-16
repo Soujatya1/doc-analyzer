@@ -85,8 +85,8 @@ def extract_english_text(text):
                 not re.search(r'^[\d\s\-\.\(\)]+$', line)):
                 english_content.append(line)
     
-    return '\n'.join(english_content)
-
+    english_text = return '\n'.join(english_content)
+    logger.info(f"Content: {english_text}")
 def get_summary_prompt(text):
     """Generate summary prompt for the document"""
     return f"""
