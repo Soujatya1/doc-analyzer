@@ -74,29 +74,18 @@ with col1:
     )
 
 def extract_english_text(text):
-    """Extract only English text from the document"""
-    try:
-        sentences = re.split(r'[.!?]+', text)
-        english_sentences = []
-        
-        for sentence in sentences:
-            sentence = sentence.strip()
-            if len(sentence) > 10:
-                try:
-                    lang = langdetect.detect(sentence)
-                    if lang == 'en':
-                        english_sentences.append(sentence)
-                except LangDetectException:
-                    # Fallback: check for common English words
-                    if re.search(r'\b(the|and|or|of|to|in|for|with|by|from|at|is|are|was|were)\b', sentence.lower()):
-                        english_sentences.append(sentence)
-        
-        extracted_text = '. '.join(english_sentences) + '.'
-        logger.info(f"Extracted English text ({extracted_text} ):")
+    # Split by paragraphs and lines, not just sentences
+    lines = text.split('\n')
+    english_content = []
     
-    except Exception as e:
-        st.warning(f"Language detection error: {e}. Using original text.")
-        return text
+    for line in lines:
+        line = line.strip()
+        if len(line) > 2:
+            if (re.search(r'[a-zA-Z]', line) and 
+                not re.search(r'^[\d\s\-\.\(\)]+$', line)):
+                english_content.append(line)
+    
+    return '\n'.join(english_content)
 
 def get_summary_prompt(text, page_count):
     """Generate summary prompt for the document"""
@@ -312,7 +301,7 @@ def initialize_azure_openai(endpoint, api_key, deployment_name, api_version):
             deployment_name=deployment_name,
             api_version=api_version,
             temperature=0.3,
-            max_tokens=2000
+            max_tokens=8000
         )
         return llm
     except Exception as e:
