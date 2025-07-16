@@ -122,6 +122,7 @@ Your task is to generate a **clean, concise, section-wise summary** of the input
    - **No dates are skipped or merged.**
    - Maintain **chronological order**.
    - Mention full references such as "IRDAI Circular dated 12-May-2022".
+8. Consider all the pointers from the original file while creating the response
 
 ### Output Format:
 - Follow the exact **order and structure** of the input file.
