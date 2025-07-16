@@ -91,63 +91,57 @@ def get_summary_prompt(text, page_count):
     """Generate summary prompt for the document"""
     return f"""
 You are a domain expert in insurance compliance and regulation.
-Your task is to create a **comprehensive, well-structured summary** of the IRDAI/regulatory document that follows a clean, readable format similar to a professional document.
 
-**FORMATTING REQUIREMENTS:**
-- Start with a clear document title: "# IRDAI Circular Summary"
-- Use numbered sections (1., 2., 3., etc.) for main topics
-- Use lettered subsections (a., b., c., etc.) for sub-topics
-- Use bullet points with "- " for detailed items
-- Use **bold text** for important terms and section headers
-- Maintain paragraph flow rather than excessive bullet points
-- Keep definitions and explanations in paragraph form where possible
+Your task is to generate a **clean, concise, section-wise summary** of the input IRDAI/regulatory document while preserving the **original structure and flow** of the document.
 
-**CONTENT REQUIREMENTS:**
-1. **Preserve Original Structure**: Follow the document's natural flow and organization
-2. **Comprehensive Coverage**: Include all major sections, definitions, and key provisions
-3. **Balanced Detail**: Each section should be appropriately detailed - not too brief, not too verbose
-4. **Key Information**: Include:
-   - All definitions with clear explanations
-   - Important regulations and procedures
-   - Specific provisions and requirements
-   - Tables and structured data (summarized clearly)
-   - Compliance requirements and guidelines
-   - Any penalties, charges, or financial details
+---
 
-**WRITING STYLE:**
-- Use clear, professional language
-- Maintain the regulatory tone but make it readable
-- Combine related points into coherent paragraphs
-- Use transitions between sections
-- Avoid excessive fragmentation
+### Mandatory Summarization Rules:
 
-**STRUCTURE EXAMPLE:**
-```
-# IRDAI Circular Summary
+1. **Follow the original structure strictly** — maintain the same order of:
+   - Section headings
+   - Subheadings
+   - Bullet points
+   - Tables
+   - Date-wise event history
+   - UIDAI / IRDAI / eGazette circulars
 
-1. Introduction and Background:
-[Paragraph explaining the context and purpose]
+2. **Do NOT rename or reformat section titles** — retain the exact headings from the original file.
 
-2. Objectives:
-[Clear explanation of what the regulation aims to achieve]
+3. **Each section should be summarized in 1–5 lines**, proportional to its original length:
+   - Keep it brief, but **do not omit the core message**.
+   - Avoid generalizations or overly descriptive rewriting.
 
-3. Definitions:
-- "Term 1": Explanation in paragraph form
-- "Term 2": Explanation in paragraph form
+4. If a section contains **definitions**, summarize them line by line (e.g., Definitions applicable: …).
 
-4. Main Provisions:
-[Detailed explanation of key requirements]
+5. If the section contains **tabular data**, preserve **column-wise details**:
+   - Include every row and column in a concise bullet or structured format.
+   - Do not merge or generalize rows — maintain data fidelity.
 
-And so on...
-```
+6. If a section contains **violations, fines, or penalties**, mention each item clearly:
+   - List out exact violation titles and actions taken or proposed.
 
-**IMPORTANT:** 
-- Do NOT use ## or ### markdown headers - use numbered sections instead
-- Focus on readability and professional presentation
-- Ensure the summary is comprehensive but not overwhelming
-- Target approximately 40-60% of the original document length
+7. For **date-wise circulars or history**, ensure that:
+   - **No dates are skipped or merged.**
+   - Maintain **chronological order**.
+   - Mention full references such as "IRDAI Circular dated 12-May-2022".
+8. Target approximately 40-60% of the original document length
 
-Document to summarize (Total pages: {page_count}):
+---
+
+### Output Format:
+
+- Follow the exact **order and structure** of the input file.
+- Do **not invent new headings** or sections.
+- Avoid decorative formatting, markdown, or unnecessary bolding — use **clean plain text**.
+
+---
+
+### Guideline:
+
+Ensure that the **total summary length does not exceed ~50% of the English content pages** from the input document (total pages: {page_count}).
+
+Now, generate a section-wise structured summary of the document below:
 --------------------
 {text}
 """
