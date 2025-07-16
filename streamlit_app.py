@@ -118,6 +118,7 @@ Your task is to generate a **clean, section-wise and chapter-wise summary** of t
 
 1. Understand each and every section, chapter and pointers in the original file
 2. Summarize pointer-by-pointer keeping the context as-is and respond
+3. Also read through the tables too and summarize the same
 
 ---
 
