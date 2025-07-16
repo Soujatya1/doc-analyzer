@@ -45,6 +45,15 @@ with st.sidebar:
         ["2025-01-01-preview"],
         index=0
     )
+    
+    # Analysis Type Selection
+    st.header("📊 Analysis Options")
+    analysis_type = st.selectbox(
+        "Choose Analysis Type",
+        ["Structured Analysis", "Document Summary", "Both"],
+        index=0,
+        help="Select the type of analysis to perform"
+    )
 
 # Main content area
 col1, col2 = st.columns([1, 1])
@@ -58,8 +67,8 @@ with col1:
         help="Upload one or more PDF files containing IRDAI circulars"
     )
 
-# Define the prompt template
-prompt_template = PromptTemplate(
+# Define the structured analysis prompt template
+structured_prompt_template = PromptTemplate(
     input_variables=["document_content"],
     template="""You are a document analyzer and writer. There are some input IRDAI circulars. Read through the documents and create an output where there will be headers and sub-headers, under which the pointers to be mentioned.
 
@@ -79,6 +88,53 @@ Output Format:
 - Include any deadlines or compliance requirements
 
 Analysis:"""
+)
+
+def get_summary_prompt(text, page_count):
+    """Generate summary prompt for the document"""
+    return f"""
+You are a domain expert in insurance compliance and regulation.
+Your task is to generate a **clean, concise, section-wise summary** of the input IRDAI/regulatory document while preserving the **original structure and flow** of the document.
+---
+### Mandatory Summarization Rules:
+1. **Follow the original structure strictly** — maintain the same order of:
+   - Section headings
+   - Subheadings
+   - Bullet points
+   - Tables
+   - Date-wise event history
+   - UIDAI / IRDAI / eGazette circulars
+2. **Do NOT rename or reformat section titles** — retain the exact headings from the original file.
+3. **Each section should be summarized in 1–5 lines**, proportional to its original length:
+   - Keep it brief, but **do not omit the core message**.
+   - Avoid generalizations or overly descriptive rewriting.
+4. If a section contains **definitions**, summarize them line by line (e.g., Definition A: …).
+5. If the section contains **tabular data**, preserve **column-wise details**:
+   - Include every row and column in a concise bullet or structured format.
+   - Do not merge or generalize rows — maintain data fidelity.
+6. If a section contains **violations, fines, or penalties**, mention each item clearly:
+   - List out exact violation titles and actions taken or proposed.
+7. For **date-wise circulars or history**, ensure that:
+   - **No dates are skipped or merged.**
+   - Maintain **chronological order**.
+   - Mention full references such as "IRDAI Circular dated 12-May-2022".
+---
+### Output Format:
+- Follow the exact **order and structure** of the input file.
+- Do **not invent new headings** or sections.
+- Avoid decorative formatting, markdown, or unnecessary bolding — use **clean plain text**.
+---
+### Guideline:
+Ensure that the **total summary length does not exceed ~50% of the English content pages** from the input document (total pages: {page_count}).
+Now, generate a section-wise structured summary of the document below:
+--------------------
+{text}
+"""
+
+# Create summary prompt template
+summary_prompt_template = PromptTemplate(
+    input_variables=["document_content", "page_count"],
+    template="{document_content}"
 )
 
 def initialize_azure_openai(endpoint, api_key, deployment_name, api_version):
@@ -125,8 +181,8 @@ def load_pdf_documents(uploaded_files):
     
     return all_documents
 
-def analyze_documents(documents, llm, prompt_template):
-    """Analyze documents using Azure OpenAI"""
+def analyze_documents_structured(documents, llm, prompt_template):
+    """Analyze documents using structured analysis"""
     try:
         # Combine all document content
         combined_content = "\n\n".join([doc.page_content for doc in documents])
@@ -135,13 +191,42 @@ def analyze_documents(documents, llm, prompt_template):
         chain = LLMChain(llm=llm, prompt=prompt_template)
         
         # Generate analysis
-        with st.spinner("🔄 Analyzing documents with Azure OpenAI..."):
+        with st.spinner("🔄 Performing structured analysis..."):
             result = chain.run(document_content=combined_content)
         
         return result
     
     except Exception as e:
-        st.error(f"Error during analysis: {str(e)}")
+        st.error(f"Error during structured analysis: {str(e)}")
+        return None
+
+def analyze_documents_summary(documents, llm):
+    """Analyze documents using summary generation"""
+    try:
+        # Combine all document content
+        combined_content = "\n\n".join([doc.page_content for doc in documents])
+        page_count = len(documents)
+        
+        # Generate summary prompt
+        summary_prompt = get_summary_prompt(combined_content, page_count)
+        
+        # Create a simple prompt template for summary
+        prompt_template = PromptTemplate(
+            input_variables=["prompt"],
+            template="{prompt}"
+        )
+        
+        # Create LLM chain
+        chain = LLMChain(llm=llm, prompt=prompt_template)
+        
+        # Generate summary
+        with st.spinner("🔄 Generating document summary..."):
+            result = chain.run(prompt=summary_prompt)
+        
+        return result
+    
+    except Exception as e:
+        st.error(f"Error during summary generation: {str(e)}")
         return None
 
 # Process documents when uploaded and configuration is complete
@@ -161,24 +246,84 @@ if uploaded_files and azure_endpoint and api_key and deployment_name:
                 if documents:
                     st.info(f"📊 Total pages loaded: {len(documents)}")
                     
-                    # Analyze documents
-                    analysis_result = analyze_documents(documents, llm, prompt_template)
+                    # Perform analysis based on selected type
+                    if analysis_type == "Structured Analysis":
+                        analysis_result = analyze_documents_structured(documents, llm, structured_prompt_template)
+                        
+                        if analysis_result:
+                            st.success("✅ Structured analysis completed successfully!")
+                            
+                            # Display results
+                            st.header("📄 Structured Analysis Results")
+                            st.markdown("---")
+                            st.markdown(analysis_result)
+                            
+                            # Download option
+                            st.download_button(
+                                label="📥 Download Structured Analysis",
+                                data=analysis_result,
+                                file_name="irdai_structured_analysis.md",
+                                mime="text/markdown"
+                            )
                     
-                    if analysis_result:
-                        st.success("✅ Analysis completed successfully!")
+                    elif analysis_type == "Document Summary":
+                        summary_result = analyze_documents_summary(documents, llm)
                         
-                        # Display results
-                        st.header("📄 Analysis Results")
-                        st.markdown("---")
-                        st.markdown(analysis_result)
+                        if summary_result:
+                            st.success("✅ Document summary generated successfully!")
+                            
+                            # Display results
+                            st.header("📄 Document Summary")
+                            st.markdown("---")
+                            st.text(summary_result)
+                            
+                            # Download option
+                            st.download_button(
+                                label="📥 Download Summary",
+                                data=summary_result,
+                                file_name="irdai_document_summary.txt",
+                                mime="text/plain"
+                            )
+                    
+                    else:  # Both analyses
+                        # Structured Analysis
+                        analysis_result = analyze_documents_structured(documents, llm, structured_prompt_template)
                         
-                        # Download option
-                        st.download_button(
-                            label="📥 Download Analysis",
-                            data=analysis_result,
-                            file_name="irdai_circular_analysis.md",
-                            mime="text/markdown"
-                        )
+                        # Document Summary
+                        summary_result = analyze_documents_summary(documents, llm)
+                        
+                        if analysis_result and summary_result:
+                            st.success("✅ Both analyses completed successfully!")
+                            
+                            # Create tabs for results
+                            tab1, tab2 = st.tabs(["📋 Structured Analysis", "📄 Document Summary"])
+                            
+                            with tab1:
+                                st.markdown(analysis_result)
+                                st.download_button(
+                                    label="📥 Download Structured Analysis",
+                                    data=analysis_result,
+                                    file_name="irdai_structured_analysis.md",
+                                    mime="text/markdown"
+                                )
+                            
+                            with tab2:
+                                st.text(summary_result)
+                                st.download_button(
+                                    label="📥 Download Summary",
+                                    data=summary_result,
+                                    file_name="irdai_document_summary.txt",
+                                    mime="text/plain"
+                                )
+                            
+                            # Combined download
+                            combined_result = f"# IRDAI Document Analysis\n\n## Structured Analysis\n\n{analysis_result}\n\n## Document Summary\n\n{summary_result}"
+                            st.download_button(
+                                label="📥 Download Combined Analysis",
+                                data=combined_result,
+                                file_name="irdai_complete_analysis.md",
+                                mime="text/markdown"
+                            )
 
 elif uploaded_files:
     with col2:
@@ -193,12 +338,18 @@ st.markdown("---")
 st.markdown("""
 ### 📝 Instructions:
 1. **Configure Azure OpenAI**: Enter your Azure OpenAI endpoint, API key, and deployment details in the sidebar
-2. **Upload Documents**: Select one or more PDF files containing IRDAI circulars
-3. **Analyze**: Click the 'Analyze Documents' button to process the documents
-4. **Review Results**: The structured analysis will appear with headers, sub-headers, and key points
-5. **Download**: Save the analysis as a markdown file for future reference
+2. **Select Analysis Type**: Choose between Structured Analysis, Document Summary, or Both
+3. **Upload Documents**: Select one or more PDF files containing IRDAI circulars
+4. **Analyze**: Click the 'Analyze Documents' button to process the documents
+5. **Review Results**: The analysis will appear based on your selected type
+6. **Download**: Save the analysis results for future reference
 
-### 🔧 Requirements:
+### 🔧 Analysis Types:
+- **Structured Analysis**: Creates organized content with headers, sub-headers, and bullet points
+- **Document Summary**: Generates a concise, section-wise summary preserving original structure
+- **Both**: Performs both analyses and presents results in separate tabs
+
+### 📋 Requirements:
 - Valid Azure OpenAI service subscription
 - PDF files containing IRDAI circulars
 - Stable internet connection for API calls
