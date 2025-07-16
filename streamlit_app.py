@@ -97,7 +97,8 @@ Your task is to generate a **clean, section-wise and chapter-wise summary** of t
 ---
 
 ### Mandatory Summarization Rules:
-Target approximately 40-60% of the original source document pointers while creating response, also consider all the pointers under each section and each chapter
+
+1. Understand each and every section, chapter and pointers in the original file and summarize the same line by line upto 60% of the original
 
 ---
 
