@@ -108,7 +108,7 @@ Your task is to generate a **clean, section-wise and chapter-wise summary** of t
 ### Mandatory Summarization Rules:
 
 1. Understand each and every section, chapter and pointers in the original file
-2. Summarize the same line by line upto 60% of the original line and respond
+2. Summarize the same line by line and respond
 
 ---
 
