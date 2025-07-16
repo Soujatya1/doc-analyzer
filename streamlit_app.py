@@ -1,10 +1,21 @@
 import streamlit as st
 import os
+import re
 from langchain.document_loaders import PyPDFLoader
 from langchain.prompts import PromptTemplate
 from langchain_openai import AzureChatOpenAI
 from langchain.chains import LLMChain
 import tempfile
+import langdetect
+from langdetect.lang_detect_exception import LangDetectException
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.lib.colors import black, blue, darkblue
+from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_JUSTIFY
+from datetime import datetime
+import io
 
 # Configure Streamlit page
 st.set_page_config(
@@ -45,8 +56,6 @@ with st.sidebar:
         ["2025-01-01-preview"],
         index=0
     )
-    
-
 
 # Main content area
 col1, col2 = st.columns([1, 1])
@@ -60,18 +69,43 @@ with col1:
         help="Upload one or more PDF files containing IRDAI circulars"
     )
 
-# Define the summary prompt template
-summary_prompt_template = PromptTemplate(
-    input_variables=["document_content", "page_count"],
-    template="{document_content}"
-)
+def extract_english_text(text):
+    """Extract only English text from the document"""
+    try:
+        sentences = re.split(r'[.!?]+', text)
+        english_sentences = []
+        
+        for sentence in sentences:
+            sentence = sentence.strip()
+            if len(sentence) > 10:
+                try:
+                    lang = langdetect.detect(sentence)
+                    if lang == 'en':
+                        english_sentences.append(sentence)
+                except LangDetectException:
+                    # Fallback: check for common English words
+                    if re.search(r'\b(the|and|or|of|to|in|for|with|by|from|at|is|are|was|were)\b', sentence.lower()):
+                        english_sentences.append(sentence)
+        
+        return '. '.join(english_sentences) + '.'
+    
+    except Exception as e:
+        st.warning(f"Language detection error: {e}. Using original text.")
+        return text
 
 def get_summary_prompt(text, page_count):
     """Generate summary prompt for the document"""
     return f"""
 You are a domain expert in insurance compliance and regulation.
 Your task is to generate a **clean, concise, section-wise summary** of the input IRDAI/regulatory document while preserving the **original structure and flow** of the document.
----
+
+**IMPORTANT: Format your response with clear hierarchical structure using these markers:**
+- Use "## " for main section headers
+- Use "### " for subsection headers
+- Use "#### " for sub-subsection headers
+- Use bullet points with "• " for lists
+- Use numbered lists with "1. " for sequential items
+
 ### Mandatory Summarization Rules:
 1. **Follow the original structure strictly** — maintain the same order of:
    - Section headings
@@ -81,7 +115,7 @@ Your task is to generate a **clean, concise, section-wise summary** of the input
    - Date-wise event history
    - UIDAI / IRDAI / eGazette circulars
 2. **Do NOT rename or reformat section titles** — retain the exact headings from the original file.
-3. **Each section should be summarized 5 lines**, proportional to its original length:
+3. **Each section should be summarized in 5 lines**, proportional to its original length:
    - Keep it brief, but **do not omit the core message**.
    - Avoid generalizations or overly descriptive rewriting.
 4. If a section contains **definitions**, summarize them line by line (e.g., Definition A: …).
@@ -94,12 +128,13 @@ Your task is to generate a **clean, concise, section-wise summary** of the input
    - **No dates are skipped or merged.**
    - Maintain **chronological order**.
    - Mention full references such as "IRDAI Circular dated 12-May-2022".
----
+
 ### Output Format:
 - Follow the exact **order and structure** of the input file.
+- Use the hierarchical markers (##, ###, ####) for proper formatting.
 - Do **not invent new headings** or sections.
-- Avoid decorative formatting, markdown, or unnecessary bolding — use **clean plain text**.
----
+- Use clean, structured formatting for easy PDF conversion.
+
 ### Guideline:
 Ensure that the **total summary length does not exceed ~50% of the English content pages** from the input document (total pages: {page_count}).
 Now, generate a section-wise structured summary of the document below:
@@ -107,11 +142,156 @@ Now, generate a section-wise structured summary of the document below:
 {text}
 """
 
-# Create summary prompt template
-summary_prompt_template = PromptTemplate(
-    input_variables=["document_content", "page_count"],
-    template="{document_content}"
-)
+def create_pdf_styles():
+    """Create custom styles for PDF generation"""
+    styles = getSampleStyleSheet()
+    
+    # Custom styles for different heading levels
+    styles.add(ParagraphStyle(
+        name='CustomTitle',
+        parent=styles['Title'],
+        fontSize=18,
+        textColor=darkblue,
+        spaceAfter=20,
+        alignment=TA_CENTER
+    ))
+    
+    styles.add(ParagraphStyle(
+        name='MainHeader',
+        parent=styles['Heading1'],
+        fontSize=14,
+        textColor=darkblue,
+        spaceAfter=12,
+        spaceBefore=16,
+        leftIndent=0
+    ))
+    
+    styles.add(ParagraphStyle(
+        name='SubHeader',
+        parent=styles['Heading2'],
+        fontSize=12,
+        textColor=blue,
+        spaceAfter=8,
+        spaceBefore=10,
+        leftIndent=20
+    ))
+    
+    styles.add(ParagraphStyle(
+        name='SubSubHeader',
+        parent=styles['Heading3'],
+        fontSize=11,
+        textColor=black,
+        spaceAfter=6,
+        spaceBefore=8,
+        leftIndent=40
+    ))
+    
+    styles.add(ParagraphStyle(
+        name='BodyText',
+        parent=styles['Normal'],
+        fontSize=10,
+        spaceAfter=6,
+        spaceBefore=3,
+        leftIndent=0,
+        alignment=TA_JUSTIFY
+    ))
+    
+    styles.add(ParagraphStyle(
+        name='BulletText',
+        parent=styles['Normal'],
+        fontSize=10,
+        spaceAfter=4,
+        spaceBefore=2,
+        leftIndent=20,
+        bulletIndent=10
+    ))
+    
+    return styles
+
+def parse_structured_text_to_pdf(text, filename="irdai_summary.pdf"):
+    """Convert structured text to PDF with proper formatting"""
+    
+    # Create a bytes buffer for the PDF
+    buffer = io.BytesIO()
+    
+    # Create the PDF document
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=72,
+        leftMargin=72,
+        topMargin=72,
+        bottomMargin=18
+    )
+    
+    # Get custom styles
+    styles = create_pdf_styles()
+    
+    # Story to hold all the content
+    story = []
+    
+    # Add title
+    title = Paragraph("IRDAI Document Analysis Summary", styles['CustomTitle'])
+    story.append(title)
+    story.append(Spacer(1, 20))
+    
+    # Add generation date
+    date_text = f"Generated on: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}"
+    date_para = Paragraph(date_text, styles['BodyText'])
+    story.append(date_para)
+    story.append(Spacer(1, 20))
+    
+    # Split text into lines and process
+    lines = text.split('\n')
+    
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+            
+        # Main headers (##)
+        if line.startswith('## '):
+            header_text = line[3:].strip()
+            para = Paragraph(header_text, styles['MainHeader'])
+            story.append(para)
+            
+        # Sub headers (###)
+        elif line.startswith('### '):
+            header_text = line[4:].strip()
+            para = Paragraph(header_text, styles['SubHeader'])
+            story.append(para)
+            
+        # Sub-sub headers (####)
+        elif line.startswith('#### '):
+            header_text = line[5:].strip()
+            para = Paragraph(header_text, styles['SubSubHeader'])
+            story.append(para)
+            
+        # Bullet points
+        elif line.startswith('• ') or line.startswith('- '):
+            bullet_text = line[2:].strip()
+            para = Paragraph(f"• {bullet_text}", styles['BulletText'])
+            story.append(para)
+            
+        # Numbered lists
+        elif re.match(r'^\d+\.\s', line):
+            para = Paragraph(line, styles['BulletText'])
+            story.append(para)
+            
+        # Regular text
+        else:
+            if line:
+                para = Paragraph(line, styles['BodyText'])
+                story.append(para)
+    
+    # Build PDF
+    doc.build(story)
+    
+    # Get the PDF data
+    pdf_data = buffer.getvalue()
+    buffer.close()
+    
+    return pdf_data
 
 def initialize_azure_openai(endpoint, api_key, deployment_name, api_version):
     """Initialize Azure OpenAI LLM"""
@@ -160,12 +340,16 @@ def load_pdf_documents(uploaded_files):
 def analyze_documents_summary(documents, llm):
     """Analyze documents using summary generation"""
     try:
-        # Combine all document content
+        # Combine all document content and extract English text
         combined_content = "\n\n".join([doc.page_content for doc in documents])
+        
+        # Extract only English text
+        english_content = extract_english_text(combined_content)
+        
         page_count = len(documents)
         
         # Generate summary prompt
-        summary_prompt = get_summary_prompt(combined_content, page_count)
+        summary_prompt = get_summary_prompt(english_content, page_count)
         
         # Create a simple prompt template for summary
         prompt_template = PromptTemplate(
@@ -214,13 +398,28 @@ if uploaded_files and azure_endpoint and api_key and deployment_name:
                         st.markdown("---")
                         st.text(summary_result)
                         
-                        # Download option
-                        st.download_button(
-                            label="📥 Download Summary",
-                            data=summary_result,
-                            file_name="irdai_document_summary.txt",
-                            mime="text/plain"
-                        )
+                        # Generate PDF
+                        with st.spinner("🔄 Generating PDF..."):
+                            pdf_data = parse_structured_text_to_pdf(summary_result)
+                        
+                        # Download options
+                        col_txt, col_pdf = st.columns(2)
+                        
+                        with col_txt:
+                            st.download_button(
+                                label="📥 Download as Text",
+                                data=summary_result,
+                                file_name="irdai_document_summary.txt",
+                                mime="text/plain"
+                            )
+                        
+                        with col_pdf:
+                            st.download_button(
+                                label="📄 Download as PDF",
+                                data=pdf_data,
+                                file_name="irdai_document_summary.pdf",
+                                mime="application/pdf"
+                            )
 
 elif uploaded_files:
     with col2:
@@ -235,19 +434,26 @@ st.markdown("---")
 st.markdown("""
 ### 📝 Instructions:
 1. **Configure Azure OpenAI**: Enter your Azure OpenAI endpoint, API key, and deployment details in the sidebar
-2. **Select Analysis Type**: Choose between Structured Analysis, Document Summary, or Both
-3. **Upload Documents**: Select one or more PDF files containing IRDAI circulars
-4. **Analyze**: Click the 'Analyze Documents' button to process the documents
-5. **Review Results**: The analysis will appear based on your selected type
-6. **Download**: Save the analysis results for future reference
+2. **Upload Documents**: Select one or more PDF files containing IRDAI circulars
+3. **Analyze**: Click the 'Generate Document Summary' button to process the documents
+4. **Review Results**: The analysis will appear with proper formatting
+5. **Download**: Save the analysis results as text or formatted PDF
 
-### 🔧 Analysis Types:
-- **Structured Analysis**: Creates organized content with headers, sub-headers, and bullet points
-- **Document Summary**: Generates a concise, section-wise summary preserving original structure
-- **Both**: Performs both analyses and presents results in separate tabs
+### 🔧 Features:
+- **English Text Processing**: Automatically extracts and processes only English content
+- **Structured PDF Output**: Creates professionally formatted PDF with proper headers and subheaders
+- **Hierarchical Formatting**: Maintains document structure with appropriate indentation and styling
+- **Multiple Download Options**: Save as both text and PDF formats
 
 ### 📋 Requirements:
 - Valid Azure OpenAI service subscription
 - PDF files containing IRDAI circulars
 - Stable internet connection for API calls
+
+### 📄 PDF Features:
+- Professional document formatting
+- Hierarchical header structure
+- Proper indentation and spacing
+- Color-coded headers for easy navigation
+- Generation timestamp
 """)
