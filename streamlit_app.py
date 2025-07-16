@@ -105,6 +105,15 @@ Your task is to generate a **clean, section-wise and chapter-wise summary** of t
 
 ---
 
+**FORMATTING REQUIREMENTS:**
+- Start with a clear document title: "# IRDAI Circular Summary"
+- Use numbered sections (1., 2., 3., etc.) for main topics
+- Use lettered subsections (a., b., c., etc.) for sub-topics
+- Use bullet points with "- " for detailed items
+- Use **bold text** for important terms and section headers
+- Maintain paragraph flow rather than excessive bullet points
+- Keep definitions and explanations in paragraph form where possible
+
 ### Mandatory Summarization Rules:
 
 1. Understand each and every section, chapter and pointers in the original file
