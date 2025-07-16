@@ -234,10 +234,6 @@ def parse_structured_text_to_pdf(text, filename="irdai_summary.pdf"):
     story.append(title)
     story.append(Spacer(1, 20))
     
-    # Add generation date
-    date_para = Paragraph(date_text, styles['IRDAIBodyText'])
-    story.append(date_para)
-    story.append(Spacer(1, 20))
     
     # Split text into lines and process
     lines = text.split('\n')
