@@ -81,7 +81,7 @@ Your task is to generate a **clean, concise, section-wise summary** of the input
    - Date-wise event history
    - UIDAI / IRDAI / eGazette circulars
 2. **Do NOT rename or reformat section titles** — retain the exact headings from the original file.
-3. **Each section should be summarized in 1–5 lines**, proportional to its original length:
+3. **Each section should be summarized 5 lines**, proportional to its original length:
    - Keep it brief, but **do not omit the core message**.
    - Avoid generalizations or overly descriptive rewriting.
 4. If a section contains **definitions**, summarize them line by line (e.g., Definition A: …).
