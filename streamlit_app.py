@@ -16,6 +16,10 @@ from reportlab.lib.colors import black, blue, darkblue
 from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_JUSTIFY
 from datetime import datetime
 import io
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Configure Streamlit page
 st.set_page_config(
@@ -88,7 +92,7 @@ def extract_english_text(text):
                         english_sentences.append(sentence)
         
         extracted_text = '. '.join(english_sentences) + '.'
-        st.logger.info(f"Extracted English text ({extracted_text} ):")
+        logger.info(f"Extracted English text ({extracted_text} ):")
     
     except Exception as e:
         st.warning(f"Language detection error: {e}. Using original text.")
