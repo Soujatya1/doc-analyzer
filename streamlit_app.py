@@ -98,7 +98,7 @@ Your task is to generate a **clean, section-wise and chapter-wise summary** of t
 
 ### Mandatory Summarization Rules:
 
-1. Understand each and every section, chapter and pointers in the original file and summarize the same line by line upto 60% of the original
+1. Understand each and every section, chapter and pointers in the original file and summarize the same line by line upto 60% of the original for ENGLISH TEXT ONLY
 
 ---
 
