@@ -110,8 +110,8 @@ Your task is to generate a **clean, section-wise and chapter-wise summary** of t
 1. Understand each and every section, chapter and pointers in the original file
 2. Summarize pointer-by-pointer keeping the context as-is and respond
 3. Do not miss out on any tabular data pointers
-4. There will be header stating with "Definitions" in the source file, which needs to be correctly captured in the generated response
-5. Under the header, there will be a short write-up which also needs to be captured, starting with "F. No. IRDAI/Reg/11/205/2024 or G.S.R. 02(E)"
+4. There will be header stating with "Definitions or Definitions applicable to Part A of these Regulations" in the source file, which needs to be correctly captured in the generated response
+5. Under the header, there will be a short write-up which also needs to be captured, starting with headers like "F. No. IRDAI/Reg/11/205/2024 or G.S.R. 02(E)"
 
 ---
 
