@@ -109,46 +109,22 @@ Your task is to generate a **clean, section-wise and chapter-wise summary** of t
 
 ## Phase 1: Document Structure Scan
 - **Map Structure**: Identify all sections, chapters, headers
-- **Find Key Elements**: Locate "Definitions" section and regulatory numbers (F. No. IRDAI/Reg/11/205/2024, G.S.R. 02(E))
 - **Catalog Components**: List all tables, numbered points, sub-points
 
 ## Phase 2: Line-by-Line Processing
 - **Read Sequentially**: Process every line without skipping
 - **Identify Pointers**: Mark every numbered/lettered/bulleted point
 - **Track Tables**: Treat each table row and cell as individual pointers
-- **Log Progress**: Check off each processed element
 
-## Phase 3: Definitions Section Focus
-- **Capture Header**: Extract full "Definitions applicable to Part A" header
-- **Get Preamble**: Include complete introductory text with regulatory numbers
-- **Process Each Definition**: Summarize every defined term
-
-## Phase 4: Pointer Analysis
+## Phase 3: Pointer Analysis
 For each pointer:
 - **Read**: Complete text
 - **Understand**: Core meaning
 - **Summarize**: All points
 - **Track**: Mark as completed
 
-## Phase 5: Quality Check
-- **Count Verification**: All pointers processed
-- **Content Review**: Summaries capture essence
-- **Structure Maintained**: Original organization preserved
-
 ## Output Format
-1. **Document Overview**
-2. **Regulatory Numbers** (F. No. IRDAI/Reg/...)
-3. **Definitions Section** (complete with preamble)
-4. **Section Summaries** (all pointers by original order)
-5. **Tabular Data** (all tables summarized)
-
-## Success Checklist
-- [ ] Every line read
-- [ ] All pointers logged and summarized
-- [ ] Definitions section fully captured
-- [ ] Tables processed as individual pointers
-- [ ] Original structure maintained
-- [ ] No content skipped
+- Follow the exact **order and structure** of the input file.
 
 ---
 
