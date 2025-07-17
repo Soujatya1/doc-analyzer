@@ -101,19 +101,19 @@ def get_summary_prompt(text):
     return f"""
 You are a domain expert in insurance compliance and regulation.
 
-Your task is to generate a **clean, section-wise and chapter-wise summary** of the input IRDAI/regulatory document while preserving the **original structure and flow** of the document.
+Your task is to generate a **clean summary** of the input IRDAI/regulatory document while preserving the **original structure and flow** of the document.
 
 ---
 
 # Document Analysis Chain of Thoughts - Concise Version
 
 ## Phase 1: Document Structure Scan
-- **Map Structure**: Identify all sections, chapters, headers
+- **Map Structure**: Identify all sections, chapters, headers, sub-headers
 - **Catalog Components**: List all tables, numbered points, sub-points
 
 ## Phase 2: Line-by-Line Processing
 - **Read Sequentially**: Process every line without skipping
-- **Identify Pointers**: Mark every numbered/lettered/bulleted point
+- **Identify Pointers**: Mark every numbered/lettered/bulleted point/header/sub-header
 - **Track Tables**: Treat each table row and cell as individual pointers
 
 ## Phase 3: Pointer Analysis
