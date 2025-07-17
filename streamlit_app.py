@@ -95,7 +95,7 @@ def extract_english_text(text):
         st.warning(f"Language detection error: {e}. Using original text.")
         return text
         
-def get_summary_prompt(text, page_count):
+def get_summary_prompt(text):
     return f"""
 You are a domain expert in insurance compliance and regulation.
 
@@ -144,8 +144,6 @@ Your task is to generate a **clean, concise, section-wise summary** of the input
 ---
 
 ### Guideline:
-
-Ensure that the **total summary length does not exceed ~50% of the English content pages** from the input document (total pages: {page_count}).
 
 Now, generate a section-wise structured summary of the document below:
 --------------------
@@ -331,7 +329,7 @@ def analyze_documents_summary(documents, llm):
         
         page_count = len(documents)
         
-        summary_prompt = get_summary_prompt(english_content, page_count)
+        summary_prompt = get_summary_prompt(english_content)
         
         prompt_template = PromptTemplate(
             input_variables=["prompt"],
