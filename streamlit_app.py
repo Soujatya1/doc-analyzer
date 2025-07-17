@@ -109,6 +109,8 @@ Your task is to generate a **clean, section-wise and chapter-wise summary** of t
 
 1. Understand each and every section, chapter and pointers in the original file
 2. Summarize pointer-by-pointer keeping the context as-is and respond
+3. Do not miss out on any tabular data pointers
+4. There will be "Definitions" in the source file, which needs to be correctly captured in the generated response
 
 ---
 
