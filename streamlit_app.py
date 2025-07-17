@@ -102,8 +102,6 @@ def get_summary_prompt(text):
 
 Analyze the uploaded regulatory document and provide a comprehensive point-by-point summary following these exact requirements:
 
-**SCOPE**: Focus only on the English text portion starting from page [X] to the end of the document.
-
 **ANALYSIS METHOD**: 
 1. Read the document line-by-line systematically
 2. Identify and process every numbered point, sub-point, clause, and bullet
@@ -117,11 +115,7 @@ Analyze the uploaded regulatory document and provide a comprehensive point-by-po
 - Summarize each definition individually
 
 **OUTPUT FORMAT**:
-For each identified point, provide:
-- **Point ID**: [Complete hierarchical reference - e.g., "Regulation 5(2)(a)(i)"]
-- **Full Reference**: [Section/Chapter/Page location]
-- **Summary**: [Concise 1-2 sentence summary capturing core essence]
-- **Key Elements**: [Main requirements/components if applicable]
+- As per the original flow of the source inout document
 
 **QUALITY REQUIREMENTS**:
 - Maintain original document structure and numbering
