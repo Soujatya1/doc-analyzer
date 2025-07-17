@@ -97,53 +97,40 @@ def extract_english_text(text):
         
 def get_summary_prompt(text):
     return f"""
-You are a domain expert in insurance compliance and regulation.
+Analyze the uploaded regulatory document and provide a comprehensive point-by-point summary(upto 40%) following these exact requirements:
 
-Your task is to generate a **clean, concise, section-wise summary** of the input IRDAI/regulatory document while preserving the **original structure and flow** of the document.
+**ANALYSIS METHOD**: 
+1. Read the document line-by-line systematically
+2. Identify and process every numbered point, sub-point, clause, and bullet
+3. Include all hierarchical levels: main points (1,2,3), sub-points (a,b,c), nested points (i,ii,iii), and any additional sub-levels
+4. Process all tabular data as individual points
+5. Do not skip any content regardless of complexity
 
----
+**DEFINITIONS SECTION PRIORITY**:
+- Locate and fully capture the "Definitions:" or "Definitions applicable to Part A/B" sections
+- Extract complete preamble text including regulatory file numbers (F. No. IRDAI/Reg/11/205/2024, G.S.R. 02(E), etc.)
+- Summarize each definition individually
 
-### Mandatory Summarization Rules:
+**OUTPUT FORMAT**:
+- As per the original flow of the source inout document
 
-1. **Follow the original structure strictly** — maintain the same order of:
-   - Section headings
-   - Subheadings
-   - Bullet points
-   - Tables
-   - Date-wise event history
-   - UIDAI / IRDAI / eGazette circulars
+**QUALITY REQUIREMENTS**:
+- Maintain original document structure and numbering
+- Ensure 100% coverage - mark each processed point to avoid omissions
+- Convert all tables to structured point summaries
+- Preserve legal precision while ensuring clarity
+- Include cross-references where mentioned in original text
 
-2. **Do NOT rename or reformat section titles** — retain the exact headings from the original file.
+**VERIFICATION CHECKLIST**:
+□ Every line has been read and processed
+□ All numbered/lettered/bulleted points captured
+□ Definitions section completely processed with preamble
+□ Tabular data converted to individual point summaries
+□ Regulatory numbers and official references captured
+□ Original document structure maintained
+□ No content skipped or summarized at section level
 
-3. **Each section should be summarized in 1–5 lines**, proportional to its original length:
-   - Keep it brief, but **do not omit the core message**.
-   - Avoid generalizations or overly descriptive rewriting.
-
-4. If a section contains **definitions**, summarize them line by line (e.g., Definition A: …).
-
-5. If the section contains **tabular data in form of rows and columns sepearated by a | structure**, preserve **column-wise details**:
-   - Include every row and column in a concise bullet or structured format.
-   - Do not merge or generalize rows — maintain data fidelity.
-
-6. If a section contains **violations, fines, or penalties**, mention each item clearly:
-   - List out exact violation titles and actions taken or proposed.
-
-7. For **date-wise circulars or history**, ensure that:
-   - **No dates are skipped or merged.**
-   - Maintain **chronological order**.
-   - Mention full references such as "IRDAI Circular dated 12-May-2022".
-
----
-
-### Output Format:
-
-- Follow the exact **order and structure** of the input file.
-- Do **not invent new headings** or sections.
-- Avoid decorative formatting, markdown, or unnecessary bolding — use **clean plain text**.
-
----
-
-### Guideline:
+Proceed with systematic analysis ensuring no content is missed.
 
 Now, generate a section-wise structured summary of the document below:
 --------------------
