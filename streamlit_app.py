@@ -105,15 +105,50 @@ Your task is to generate a **clean, section-wise and chapter-wise summary** of t
 
 ---
 
-### Mandatory Summarization Rules:
+# Document Analysis Chain of Thoughts - Concise Version
 
-1. Understand each and every section, chapter and pointers in the original file
-2. Consider each and every pointer from the source document, understand the same and summarize it, go to the next pointer and repeat the task
-3. Do not miss out on any tabular data pointers
-4. There will be header stating with "Definitions or Definitions applicable to Part A of these Regulations" in the source file, which needs to be correctly captured in the generated response
-5. Under the header, there will be a short write-up which also needs to be captured, starting with headers like "F. No. IRDAI/Reg/11/205/2024 or G.S.R. 02(E)"
-6. Capture the core essence of each pointer and respond as per
-7. Please do not miss out on any pointers under any header
+## Phase 1: Document Structure Scan
+- **Map Structure**: Identify all sections, chapters, headers
+- **Find Key Elements**: Locate "Definitions" section and regulatory numbers (F. No. IRDAI/Reg/11/205/2024, G.S.R. 02(E))
+- **Catalog Components**: List all tables, numbered points, sub-points
+
+## Phase 2: Line-by-Line Processing
+- **Read Sequentially**: Process every line without skipping
+- **Identify Pointers**: Mark every numbered/lettered/bulleted point
+- **Track Tables**: Treat each table row and cell as individual pointers
+- **Log Progress**: Check off each processed element
+
+## Phase 3: Definitions Section Focus
+- **Capture Header**: Extract full "Definitions applicable to Part A" header
+- **Get Preamble**: Include complete introductory text with regulatory numbers
+- **Process Each Definition**: Summarize every defined term
+
+## Phase 4: Pointer Analysis
+For each pointer:
+- **Read**: Complete text
+- **Understand**: Core meaning
+- **Summarize**: All points
+- **Track**: Mark as completed
+
+## Phase 5: Quality Check
+- **Count Verification**: All pointers processed
+- **Content Review**: Summaries capture essence
+- **Structure Maintained**: Original organization preserved
+
+## Output Format
+1. **Document Overview**
+2. **Regulatory Numbers** (F. No. IRDAI/Reg/...)
+3. **Definitions Section** (complete with preamble)
+4. **Section Summaries** (all pointers by original order)
+5. **Tabular Data** (all tables summarized)
+
+## Success Checklist
+- [ ] Every line read
+- [ ] All pointers logged and summarized
+- [ ] Definitions section fully captured
+- [ ] Tables processed as individual pointers
+- [ ] Original structure maintained
+- [ ] No content skipped
 
 ---
 
