@@ -100,7 +100,7 @@ def get_summary_prompt(text):
     """Generate summary prompt for the document"""
     return f"""
 
-Analyze the uploaded regulatory document and provide a comprehensive point-by-point summary( upto 50%) following these exact requirements:
+Analyze the uploaded regulatory document and provide a comprehensive point-by-point summary(upto 40%) following these exact requirements:
 
 **ANALYSIS METHOD**: 
 1. Read the document line-by-line systematically
@@ -110,7 +110,7 @@ Analyze the uploaded regulatory document and provide a comprehensive point-by-po
 5. Do not skip any content regardless of complexity
 
 **DEFINITIONS SECTION PRIORITY**:
-- Locate and fully capture the "Definitions" or "Definitions applicable to Part A/B" sections
+- Locate and fully capture the "Definitions:" or "Definitions applicable to Part A/B" sections
 - Extract complete preamble text including regulatory file numbers (F. No. IRDAI/Reg/11/205/2024, G.S.R. 02(E), etc.)
 - Summarize each definition individually
 
