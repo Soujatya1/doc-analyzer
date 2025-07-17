@@ -121,7 +121,7 @@ Your task is to generate a **clean, concise, section-wise summary** of the input
 
 4. If a section contains **definitions**, summarize them line by line (e.g., Definition A: …).
 
-5. If the section contains **tabular data**, preserve **column-wise details**:
+5. If the section contains **tabular data in form of rows and columns sepearated by a | structure**, preserve **column-wise details**:
    - Include every row and column in a concise bullet or structured format.
    - Do not merge or generalize rows — maintain data fidelity.
 
