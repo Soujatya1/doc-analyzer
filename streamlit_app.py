@@ -95,7 +95,7 @@ def extract_english_text(text):
         st.warning(f"Language detection error: {e}. Using original text.")
         return text
         
-def get_summary_prompt(text):
+def get_summary_prompt(text, page_count):
     return f"""
 You are a domain expert in insurance compliance and regulation.
 
@@ -331,7 +331,7 @@ def analyze_documents_summary(documents, llm):
         
         page_count = len(documents)
         
-        summary_prompt = get_summary_prompt(english_content)
+        summary_prompt = get_summary_prompt(english_content, page_count)
         
         prompt_template = PromptTemplate(
             input_variables=["prompt"],
