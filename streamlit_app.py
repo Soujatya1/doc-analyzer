@@ -100,7 +100,7 @@ def get_summary_prompt(text):
     """Generate summary prompt for the document"""
     return f"""
 
-Analyze the uploaded regulatory document and provide a comprehensive point-by-point summary following these exact requirements:
+Analyze the uploaded regulatory document and provide a comprehensive point-by-point summary( upto 50%) following these exact requirements:
 
 **ANALYSIS METHOD**: 
 1. Read the document line-by-line systematically
