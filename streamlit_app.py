@@ -74,7 +74,6 @@ with col1:
     )
 
 def extract_english_text(text):
-    """Extract only English text from the document"""
     try:
         sentences = re.split(r'[.!?]+', text)
         english_sentences = []
@@ -97,7 +96,6 @@ def extract_english_text(text):
         return text
         
 def get_summary_prompt(text):
-    """Generate summary prompt for the document"""
     return f"""
 
 Analyze the uploaded regulatory document and provide a comprehensive point-by-point summary(upto 40%) following these exact requirements:
@@ -106,7 +104,7 @@ Analyze the uploaded regulatory document and provide a comprehensive point-by-po
 1. Read the document line-by-line systematically
 2. Identify and process every numbered point, sub-point, clause, and bullet
 3. Include all hierarchical levels: main points (1,2,3), sub-points (a,b,c), nested points (i,ii,iii), and any additional sub-levels
-4. Process all tabular data as individual points
+4. Identify the tabular data and summarize the same in defined pointers
 5. Do not skip any content regardless of complexity
 
 **DEFINITIONS SECTION PRIORITY**:
@@ -144,15 +142,12 @@ Now, generate a section-wise structured summary of the document below:
 """
 
 def create_pdf_styles():
-    """Create custom styles for PDF generation"""
     styles = getSampleStyleSheet()
     
-    # Helper function to safely add styles
     def safe_add_style(name, style):
         if name not in styles:
             styles.add(style)
     
-    # Custom styles for different heading levels
     safe_add_style('IRDAITitle', ParagraphStyle(
         name='IRDAITitle',
         parent=styles['Title'],
@@ -215,12 +210,9 @@ def create_pdf_styles():
     return styles
 
 def parse_structured_text_to_pdf(text, filename="irdai_summary.pdf"):
-    """Convert structured text to PDF with proper formatting"""
     
-    # Create a bytes buffer for the PDF
     buffer = io.BytesIO()
     
-    # Create the PDF document
     doc = SimpleDocTemplate(
         buffer,
         pagesize=A4,
@@ -230,19 +222,15 @@ def parse_structured_text_to_pdf(text, filename="irdai_summary.pdf"):
         bottomMargin=18
     )
     
-    # Get custom styles
     styles = create_pdf_styles()
     
-    # Story to hold all the content
     story = []
     
-    # Add title
     title = Paragraph("IRDAI Document Analysis Summary", styles['IRDAITitle'])
     story.append(title)
     story.append(Spacer(1, 20))
     
     
-    # Split text into lines and process
     lines = text.split('\n')
     
     for line in lines:
@@ -250,52 +238,43 @@ def parse_structured_text_to_pdf(text, filename="irdai_summary.pdf"):
         if not line:
             continue
             
-        # Main headers (##)
         if line.startswith('## '):
             header_text = line[3:].strip()
             para = Paragraph(header_text, styles['IRDAIMainHeader'])
             story.append(para)
             
-        # Sub headers (###)
         elif line.startswith('### '):
             header_text = line[4:].strip()
             para = Paragraph(header_text, styles['IRDAISubHeader'])
             story.append(para)
             
-        # Sub-sub headers (####)
         elif line.startswith('#### '):
             header_text = line[5:].strip()
             para = Paragraph(header_text, styles['IRDAISubSubHeader'])
             story.append(para)
             
-        # Bullet points
         elif line.startswith('• ') or line.startswith('- '):
             bullet_text = line[2:].strip()
             para = Paragraph(f"• {bullet_text}", styles['IRDAIBulletText'])
             story.append(para)
             
-        # Numbered lists
         elif re.match(r'^\d+\.\s', line):
             para = Paragraph(line, styles['IRDAIBulletText'])
             story.append(para)
             
-        # Regular text
         else:
             if line:
                 para = Paragraph(line, styles['IRDAIBodyText'])
                 story.append(para)
     
-    # Build PDF
     doc.build(story)
     
-    # Get the PDF data
     pdf_data = buffer.getvalue()
     buffer.close()
     
     return pdf_data
 
 def initialize_azure_openai(endpoint, api_key, deployment_name, api_version):
-    """Initialize Azure OpenAI LLM"""
     try:
         llm = AzureChatOpenAI(
             azure_endpoint=endpoint,
@@ -310,17 +289,14 @@ def initialize_azure_openai(endpoint, api_key, deployment_name, api_version):
         return None
 
 def load_pdf_documents(uploaded_files):
-    """Load PDF documents using PyPDFLoader"""
     all_documents = []
     
     for uploaded_file in uploaded_files:
-        # Create a temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
             tmp_file.write(uploaded_file.getvalue())
             tmp_file_path = tmp_file.name
         
         try:
-            # Load PDF using PyPDFLoader
             loader = PyPDFLoader(tmp_file_path)
             documents = loader.load()
             all_documents.extend(documents)
@@ -331,36 +307,28 @@ def load_pdf_documents(uploaded_files):
             st.error(f"❌ Error loading {uploaded_file.name}: {str(e)}")
         
         finally:
-            # Clean up temporary file
             if os.path.exists(tmp_file_path):
                 os.unlink(tmp_file_path)
     
     return all_documents
 
 def analyze_documents_summary(documents, llm):
-    """Analyze documents using summary generation"""
     try:
-        # Combine all document content and extract English text
         combined_content = "\n\n".join([doc.page_content for doc in documents])
         
-        # Extract only English text
         english_content = extract_english_text(combined_content)
         
         page_count = len(documents)
         
-        # Generate summary prompt
         summary_prompt = get_summary_prompt(english_content)
         
-        # Create a simple prompt template for summary
         prompt_template = PromptTemplate(
             input_variables=["prompt"],
             template="{prompt}"
         )
         
-        # Create LLM chain
         chain = LLMChain(llm=llm, prompt=prompt_template)
         
-        # Generate summary
         with st.spinner("🔄 Generating document summary..."):
             result = chain.run(prompt=summary_prompt)
         
@@ -370,7 +338,6 @@ def analyze_documents_summary(documents, llm):
         st.error(f"Error during summary generation: {str(e)}")
         return None
 
-# Process documents when uploaded and configuration is complete
 if uploaded_files and azure_endpoint and api_key and deployment_name:
     
     with col2:
