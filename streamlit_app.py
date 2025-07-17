@@ -99,40 +99,47 @@ def extract_english_text(text):
 def get_summary_prompt(text):
     """Generate summary prompt for the document"""
     return f"""
-You are a domain expert in insurance compliance and regulation.
 
-Your task is to generate a **clean summary** of the input IRDAI/regulatory document while preserving the **original structure and flow** of the document.
+Analyze the uploaded regulatory document and provide a comprehensive point-by-point summary following these exact requirements:
 
----
+**SCOPE**: Focus only on the English text portion starting from page [X] to the end of the document.
 
-# Document Analysis Chain of Thoughts - Concise Version
+**ANALYSIS METHOD**: 
+1. Read the document line-by-line systematically
+2. Identify and process every numbered point, sub-point, clause, and bullet
+3. Include all hierarchical levels: main points (1,2,3), sub-points (a,b,c), nested points (i,ii,iii), and any additional sub-levels
+4. Process all tabular data as individual points
+5. Do not skip any content regardless of complexity
 
-## Phase 1: Document Structure Scan
-- **Map Structure**: Identify all sections, chapters, headers, sub-headers
-- **Catalog Components**: List all tables, numbered points, sub-points
+**DEFINITIONS SECTION PRIORITY**:
+- Locate and fully capture the "Definitions" or "Definitions applicable to Part A/B" sections
+- Extract complete preamble text including regulatory file numbers (F. No. IRDAI/Reg/11/205/2024, G.S.R. 02(E), etc.)
+- Summarize each definition individually
 
-## Phase 2: Line-by-Line Processing
-- **Read Sequentially**: Process every line without skipping
-- **Identify Pointers**: Mark every numbered/lettered/bulleted point/header/sub-header
-- **Track Tables**: Treat each table row and cell as individual pointers
+**OUTPUT FORMAT**:
+For each identified point, provide:
+- **Point ID**: [Complete hierarchical reference - e.g., "Regulation 5(2)(a)(i)"]
+- **Full Reference**: [Section/Chapter/Page location]
+- **Summary**: [Concise 1-2 sentence summary capturing core essence]
+- **Key Elements**: [Main requirements/components if applicable]
 
-## Phase 3: Pointer Analysis
-For each pointer:
-- **Read**: Complete text
-- **Understand**: Core meaning
-- **Summarize**: All points
-- **Track**: Mark as completed
+**QUALITY REQUIREMENTS**:
+- Maintain original document structure and numbering
+- Ensure 100% coverage - mark each processed point to avoid omissions
+- Convert all tables to structured point summaries
+- Preserve legal precision while ensuring clarity
+- Include cross-references where mentioned in original text
 
-## Output Format
-- Follow the exact **order and structure** of the input file.
+**VERIFICATION CHECKLIST**:
+□ Every line has been read and processed
+□ All numbered/lettered/bulleted points captured
+□ Definitions section completely processed with preamble
+□ Tabular data converted to individual point summaries
+□ Regulatory numbers and official references captured
+□ Original document structure maintained
+□ No content skipped or summarized at section level
 
----
-
-### Output Format:
-
-- Follow the exact **order and structure** of the input file.
-- Do **not invent new headings** or sections.
-- Avoid decorative formatting, markdown, or unnecessary bolding — use **clean plain text**.
+Proceed with systematic analysis ensuring no content is missed.
 
 ---
 
