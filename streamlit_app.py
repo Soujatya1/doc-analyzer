@@ -103,7 +103,7 @@ Analyze the uploaded regulatory document and provide a comprehensive point-by-po
 1. Read the document line-by-line systematically
 2. Identify and process every numbered point, sub-point, clause, and bullet
 3. Include all hierarchical levels: main points (1,2,3), sub-points (a,b,c), nested points (i,ii,iii), and any additional sub-levels
-4. Process all tabular data as individual points
+4. Process all tabular data (may it be under a section header, sub-header or sub-points) as individual points
 5. Do not skip any content regardless of complexity
 
 **DEFINITIONS SECTION PRIORITY**:
